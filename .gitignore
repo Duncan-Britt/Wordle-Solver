@@ -1,0 +1,10 @@
+# binary
+app
+
+# emacs
+*~
+\#*\#
+*.elc
+auto-save-list
+tramp
+.\#*
