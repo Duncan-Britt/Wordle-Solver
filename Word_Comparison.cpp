@@ -4,6 +4,15 @@
 
 using namespace std;
 
+bool tempFix(int start,string wordSol, string wordGuess, unordered_map<char,int> letterCount) {
+  for (int i=start+1; i<5; i++) {
+    if (wordGuess[start]==wordGuess[i] && wordGuess[i]==wordSol[i]) {
+      return true;
+    }
+  }
+  return false;
+}
+
 string clues(string wordSol, string wordGuess) {
   unordered_map<char,int> letterCount;
 
@@ -26,8 +35,13 @@ string clues(string wordSol, string wordGuess) {
         letterCount[wordGuess[i]]--;
       }
       else {
-        wordStatus.push_back('1');
-        letterCount[wordGuess[i]]--;
+        if (i!=4 && tempFix(i, wordSol, wordGuess, letterCount)) {
+          wordStatus.push_back('0');
+        }
+        else {
+          wordStatus.push_back('1');
+          letterCount[wordGuess[i]]--;
+        }
       }
     }
     else {
