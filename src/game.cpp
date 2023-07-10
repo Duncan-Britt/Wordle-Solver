@@ -1,6 +1,7 @@
 #include "game.h"
 #include <iostream>
 #include <fstream>
+#include <unordered_set>
 
 using std::cout;
 using std::endl;
@@ -8,38 +9,87 @@ using std::string;
 
 void Game::guess(const string& input) {
 
+    //Adds the previous computer guess to the vec guessWords
+    guessWords.push_back(currGuess);
+
     //I will somehow make notInWord and inWord private members but currently there are some scoping issues with the lamdas.
+    //Just in case we want to add an option where the player wants us to print out this info.
 
     //Stores letters included in the secret word.
-    std::vector<char> inWord;
+    std::unordered_set<char> inWord;
 
     //Stores letters not included in the secret word.
     //All elements are removed after a guess is made.
-    std::vector<char> notInWord;
+    std::unordered_set<char> notInWord;
 
+    //This part of the code still doesn't fully work because of certain cases:
+    //(secret word is pasta)
+    //Guess: taste
+    //Clue: 02220
+    //This part of the code will read it as 'a' is not in the secret word because the last 'a' gives a 0.
     for (int i=0; i<5; i++) {
-        if (input[i] == '0') {
-            notInWord.push_back(currGuess[i]);
-        } else if (input[i] == '1') {
-            // TODO...
-        } else if (input[i] == '2') {
-            letterAndPosition.insert(std::make_pair(currGuess[i], i));
-        } else {
-            cout << "That is not a valid input!" << endl;
-            break;
+        switch(input[i]) {
+            case '0':
+                notInWord.insert(currGuess[i]);
+                break;
+            case '1':
+                // TODO...
+                break;
+            case '2':
+                letterAndPosition.insert(std::make_pair(currGuess[i], i));
+                break;
+            default:
+                cout << "That is not a valid input!" << endl;
+                break;
         }
     }
 
-    //Removes all words from the list-words that contain letters not in the secret word.
-    words.remove_if([&notInWord](const string& str) {
-        return std::any_of(str.begin(), str.end(), [&notInWord](char ch) {
-            return std::find(notInWord.begin(), notInWord.end(), ch) != notInWord.end();
-        });
-    });
+    //If input only contained 1's and 2's, this code doesn't need to run.
+    if (!notInWord.empty()) {
+
+        //Stores all words that need to be removed in the vec wordsToRemove.
+        for (const auto& str : words) {
+            if (std::any_of(str.begin(), str.end(), [&notInWord](char ch) {
+                return notInWord.find(ch) != notInWord.end();
+            })) {
+                wordsToRemove.insert(str);
+            }
+        }
+    }
+
+    //All words stored in wordsToRemove are removed from words.
+    removeWords();
+
+    //If the previous computer guess yielded no 2's, then this code doesn't need to run.
+    if (!letterAndPosition.empty()) {
+
+        //Stores all words for removal that don't contain letters in specific positions.
+        for (const auto& str : words) {
+            bool allTrue = true;
+            for (const auto& item : letterAndPosition) {
+                if (str[item.second] != item.first) {
+                    allTrue = false;
+                    break;
+                }
+            }
+            if (!allTrue)
+                wordsToRemove.insert(str);
+        }
+
+        //All words stored in wordsToRemove are removed from words.
+        removeWords();
+    }
 
     // TODO...
 
     //currGuess = ;
+}
+
+void Game::removeWords() {
+    for (const auto& str : wordsToRemove) {
+        words.erase(str);
+    }
+    wordsToRemove.clear();
 }
 
 void Game::printGuess() const {
@@ -59,6 +109,6 @@ Game::Game() {
     string word;
     std::ifstream file(wordFile);
     while (getline(file, word)) {
-        words.push_back(word);
+        words.insert(word);
     }
 }
