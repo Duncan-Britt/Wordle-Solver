@@ -2,7 +2,7 @@
 #define GUARD_game_h
 
 #include <iostream>
-#include <list>
+#include <unordered_set>
 
 using std::string;
 using std::cout;
@@ -16,7 +16,7 @@ using std::endl;
 class Game {
 public:
     //Game() constructor transfers all
-    //words from "word-list.csv" to a vector.
+    //words from "word-list.csv" to an unordered_set.
     Game();
 
     //guess() eliminates the possible options
@@ -24,15 +24,18 @@ public:
     //new currGuess.
     void guess(const string&);
 
+    //Removes all words from wordsToRemove.
+    void removeWords();
+
     //printGuess() prints currGuess.
     void printGuess() const;
 
     //printCurrentGame() prints all previous computer guesses.
     void printCurrentGame() const;
 private:
-    //Stores the possible words.
-    //words is a list because deletion is not computationally expensive.
-    std::list<string> words;
+    //Stores all possible words.
+    //words is an unordered_set because it has random access and constant time deletion.
+    std::unordered_set<string> words;
 
     //Stores the words previously guessed.
     std::vector<string> guessWords;
@@ -44,10 +47,14 @@ private:
 
 //    //Stores letters not included in the secret word.
 //    //All elements are removed after a guess is made.
-//    std::vector<char> notInWord;
+//    std::unordered_set<char> notInWord;
 
 //    //Stores letters included in the secret word.
-//    std::vector<char> inWord;
+//    std::unordered_set<char> inWord;
+
+    //Stores all words that need to be removed.
+    //After removeWords() is called, wordsToRemove is cleared.
+    std::unordered_set<string> wordsToRemove;
 
     //Stores letters included in the secret word plus its position.
     std::unordered_map<char,int> letterAndPosition;
