@@ -2,15 +2,20 @@
 #include <iostream>
 #include <fstream>
 #include <unordered_set>
+#include <cstdlib>
+#include <time.h>
+#include "font.h"
 
 using std::cout;
 using std::endl;
 using std::string;
+// using std::unordered_set;
+using std::vector;
 
-void Game::guess(const string& input) {
+void Game::guess(const string& input) const {
 
     //Adds the previous computer guess to the vec guessWords
-    guessWords.push_back(currGuess);
+    // guessWords.push_back(currGuess);
 
     //I will somehow make notInWord and inWord private members but currently there are some scoping issues with the lamdas.
     //Just in case we want to add an option where the player wants us to print out this info.
@@ -30,13 +35,13 @@ void Game::guess(const string& input) {
     for (int i=0; i<5; i++) {
         switch(input[i]) {
             case '0':
-                notInWord.insert(currGuess[i]);
+                // notInWord.insert(currGuess[i]);
                 break;
             case '1':
                 // TODO...
                 break;
             case '2':
-                letterAndPosition.insert(std::make_pair(currGuess[i], i));
+                // letterAndPosition.insert(std::make_pair(currGuess[i], i));
                 break;
             default:
                 cout << "That is not a valid input!" << endl;
@@ -52,7 +57,7 @@ void Game::guess(const string& input) {
             if (std::any_of(str.begin(), str.end(), [&notInWord](char ch) {
                 return notInWord.find(ch) != notInWord.end();
             })) {
-                wordsToRemove.insert(str);
+                // wordsToRemove.insert(str);
             }
         }
     }
@@ -72,8 +77,9 @@ void Game::guess(const string& input) {
                     break;
                 }
             }
-            if (!allTrue)
-                wordsToRemove.insert(str);
+            if (!allTrue) {
+                // wordsToRemove.insert(str);
+            }
         }
 
         //All words stored in wordsToRemove are removed from words.
@@ -85,21 +91,34 @@ void Game::guess(const string& input) {
     //currGuess = ;
 }
 
-void Game::removeWords() {
+void Game::removeWords() const {
     for (const auto& str : wordsToRemove) {
-        words.erase(str);
+        // words.erase(str);
     }
-    wordsToRemove.clear();
+    // wordsToRemove.clear();
 }
 
 void Game::printGuess() const {
-    cout << "Guess: " << currGuess << endl;
+    // cout << "Guess: " << currGuess << endl;
+    cout << Fonts::prompt << "> " << Fonts::message << "Guess: " << guessWords[guessWords.size()-1] << endl;
 }
 
 void Game::printCurrentGame() const {
-    cout << "List of Previous Guesses: " << endl;
-    for (int i=0; i<guessWords.size(); i++) {
-        cout << "Guess " << i+1 << ":" << guessWords[i] << endl;
+    // cout << "List of Previous Guesses: " << endl;
+    // for (int i=0; i<guessWords.size(); i++) {
+    //     cout << "Guess " << i+1 << ":" << guessWords[i] << endl;
+    // }
+
+    int i = 0;
+    for (; i < clues.size(); i++) {
+        cout << Fonts::prompt << "> " << Fonts::message << "Guess: " << guessWords[i] << endl
+             << Fonts::prompt << "> " << Fonts::message << "Clues: " << clues[i] << endl
+             << endl;
+    }
+
+    if (i < guessWords.size()) {
+        cout << Fonts::prompt << "> " << Fonts::message << "Guess: " << guessWords[i] << endl
+             << Fonts::prompt << "> " << Fonts::message << "Clues: " << Fonts::input;
     }
 }
 
@@ -109,6 +128,16 @@ Game::Game() {
     string word;
     std::ifstream file(wordFile);
     while (getline(file, word)) {
-        words.insert(word);
+        // words.insert(word);
+        words.emplace_back(word);
     }
+    
+    // Guess randomly for the first guess
+    srand(time(NULL));
+    const vector<string>::size_type randWordIdx = rand() % words.size();
+    // cout << words.size() << endl;
+    // cout << words[randWordIdx] << endl;    
+    guessWords.emplace_back(words[randWordIdx]);
+    words.erase(words.begin() + randWordIdx);
+    // cout << words.size() << endl;
 }
